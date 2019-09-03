@@ -2,6 +2,7 @@ const blessed = require("blessed");
 const { getTaskService } = require("./src/lib/task-service");
 const theme = require("./src/lib/theme");
 
+const ROOT_LEVEL = undefined;
 const showTaskList = async (screen, tasklists, activeList, service) => {
   const tasklist = tasklists[activeList];
 
@@ -22,21 +23,35 @@ const showTaskList = async (screen, tasklists, activeList, service) => {
     }
   });
 
+  const getSortedSiblings = parent =>
+    tasks.data.items
+      .filter(item => item.parent === parent)
+      .sort((a, b) => ("" + a.position).localeCompare("" + b.position));
+
+  const displayItems = getSortedSiblings(ROOT_LEVEL).reduce(
+    (list, parent) => list.concat(parent).concat(getSortedSiblings(parent.id)),
+    []
+  );
+
   const list = blessed.list({
     parent: taskScreen,
     top: 0,
     bottom: 7,
     style: theme.LIST_STYLING,
-    focussed: true,
+    focused: true,
     mouse: true,
     keys: true,
     vi: true,
     scrollable: true,
     alwaysScroll: true,
     tags: true,
-    items: tasks.data.items
-      .slice(0, -1)
-      .map(task => `[${task.completed ? "X" : " "}] ${task.title}`)
+    items: displayItems
+      .map(
+        task =>
+          `${task.parent ? "  " : ""}[${task.completed ? "X" : " "}] ${
+            task.title
+          }`
+      )
       .concat(" +  Add new task")
   });
   screen.render();
@@ -60,7 +75,7 @@ const main = async () => {
     smartCSR: true,
     fullUnicode: true
   });
-  screen.title = "Pivotal assistant";
+  screen.title = "Todo CLI";
 
   // Quit on Escape, q, or Control-C.
   screen.key(["escape", "q", "C-c"], function(ch, key) {
@@ -73,14 +88,9 @@ const main = async () => {
   const displayList = listIndex =>
     showTaskList(screen, taskLists, listIndex, service);
 
-  const next = async () => {
+  const navigate = delta => async () => {
     clr();
-    activeList = (activeList + 1) % taskLists.length;
-    clr = await displayList(activeList);
-  };
-  const prev = async () => {
-    clr();
-    activeList = (activeList + taskLists.length - 1) % taskLists.length;
+    activeList = (activeList + taskLists.length + delta) % taskLists.length;
     clr = await displayList(activeList);
   };
 
@@ -94,11 +104,15 @@ const main = async () => {
     commands: {
       Prev: {
         keys: ["1"],
-        callback: prev
+        callback: navigate(-1)
       },
       Next: {
         keys: ["2"],
-        callback: next
+        callback: navigate(1)
+      },
+      Refresh: {
+        keys: ["3"],
+        callback: navigate(0)
       }
     }
   });
