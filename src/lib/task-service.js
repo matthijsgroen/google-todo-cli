@@ -75,31 +75,6 @@ function getNewToken(oAuth2Client, callback) {
   });
 }
 
-/**
- * Lists the user's first 10 task lists.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-function listTaskLists(auth) {
-  service.tasklists.list(
-    {
-      maxResults: 10
-    },
-    (err, res) => {
-      if (err) return console.error("The API returned an error: " + err);
-      const taskLists = res.data.items;
-      if (taskLists) {
-        console.log("Task lists:");
-        taskLists.forEach(taskList => {
-          console.log(`${taskList.title} (${taskList.id})`);
-        });
-      } else {
-        console.log("No task lists found.");
-      }
-    }
-  );
-}
-
 module.exports = {
   getTaskService
 };
