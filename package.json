@@ -1,0 +1,12 @@
+{
+  "name": "google-todo-cli",
+  "version": "1.0.0",
+  "description": "Google TODO List terminal app",
+  "author": "Matthijs Groen <matthijs.groen@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "googleapis": "39"
+  }
+}
