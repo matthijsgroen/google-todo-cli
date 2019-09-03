@@ -28,10 +28,18 @@ const showTaskList = async (screen, tasklists, activeList, service) => {
       .filter(item => item.parent === parent)
       .sort((a, b) => ("" + a.position).localeCompare("" + b.position));
 
-  const displayItems = getSortedSiblings(ROOT_LEVEL).reduce(
-    (list, parent) => list.concat(parent).concat(getSortedSiblings(parent.id)),
-    []
-  );
+  const displayItems = getSortedSiblings(ROOT_LEVEL)
+    .reduce(
+      (list, parent) =>
+        list.concat(parent).concat(getSortedSiblings(parent.id)),
+      []
+    )
+    .concat({ id: "new" });
+
+  const displayTaskLine = task =>
+    `${task.parent ? "  " : ""}[${task.status === "completed" ? "X" : " "}] ${
+      task.title
+    }`;
 
   const list = blessed.list({
     parent: taskScreen,
@@ -46,13 +54,31 @@ const showTaskList = async (screen, tasklists, activeList, service) => {
     alwaysScroll: true,
     tags: true,
     items: displayItems
-      .map(
-        task =>
-          `${task.parent ? "  " : ""}[${task.completed ? "X" : " "}] ${
-            task.title
-          }`
-      )
+      .slice(0, -1)
+      .map(displayTaskLine)
       .concat(" +  Add new task")
+  });
+  let selectedIndex = null;
+  list.on("select item", (item, index) => {
+    selectedIndex = index;
+  });
+  list.on("keypress", async char => {
+    const selectedTask = displayItems[selectedIndex];
+    if (selectedTask && selectedTask.id !== "new" && char === "x") {
+      const res = await service.tasks.update({
+        tasklist: tasklist.id,
+        task: selectedTask.id,
+        requestBody: {
+          id: selectedTask.id,
+          status:
+            selectedTask.status === "completed" ? "needsAction" : "completed"
+        }
+      });
+      const updatedTask = res.data;
+      displayItems[selectedIndex] = updatedTask;
+      list.setItem(selectedIndex, displayTaskLine(updatedTask));
+      screen.render();
+    }
   });
   screen.render();
 
