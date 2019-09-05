@@ -3,7 +3,13 @@ const { getTaskService } = require("./src/lib/task-service");
 const theme = require("./src/lib/theme");
 
 const ROOT_LEVEL = undefined;
-const showTaskList = async (screen, tasklists, activeList, service) => {
+const showTaskList = async (
+  screen,
+  tasklists,
+  activeList,
+  service,
+  dataChanged
+) => {
   const tasklist = tasklists[activeList];
 
   const tasks = await service.tasks.list({
@@ -79,6 +85,66 @@ const showTaskList = async (screen, tasklists, activeList, service) => {
       list.setItem(selectedIndex, displayTaskLine(updatedTask));
       screen.render();
     }
+    if (selectedTask && selectedTask.id !== "new" && char === "D") {
+      const res = await service.tasks.delete({
+        tasklist: tasklist.id,
+        task: selectedTask.id
+      });
+      dataChanged();
+    }
+  });
+  list.on("action", async () => {
+    const selectedTask = displayItems[selectedIndex];
+    if (selectedTask && selectedTask.id !== "new") {
+      const prompt = blessed.prompt({
+        left: "center",
+        top: "center",
+        height: "shrink",
+        width: "shrink",
+        ...theme.BOX_STYLING
+      });
+      screen.append(prompt);
+      prompt.input("Edit task name", selectedTask.title, async (err, data) => {
+        prompt.hide();
+        screen.render();
+        if (data === null) return;
+        const res = await service.tasks.update({
+          tasklist: tasklist.id,
+          task: selectedTask.id,
+          requestBody: {
+            id: selectedTask.id,
+            title: data
+          }
+        });
+        dataChanged();
+      });
+    }
+    if (selectedTask && selectedTask.id === "new") {
+      const prompt = blessed.prompt({
+        left: "center",
+        top: "center",
+        height: "shrink",
+        width: "shrink",
+        ...theme.BOX_STYLING
+      });
+      screen.append(prompt);
+      prompt.input("New task name", "", async (err, data) => {
+        prompt.hide();
+        screen.render();
+        if (data === null) return;
+        const bottomTask = displayItems[selectedIndex - 1];
+        const res = await service.tasks.insert({
+          tasklist: tasklist.id,
+          previous: bottomTask.id,
+          requestBody: {
+            kind: "tasks#task",
+            status: "needsAction",
+            title: data
+          }
+        });
+        dataChanged();
+      });
+    }
   });
   screen.render();
 
@@ -112,7 +178,10 @@ const main = async () => {
   let activeList = 0;
 
   const displayList = listIndex =>
-    showTaskList(screen, taskLists, listIndex, service);
+    showTaskList(screen, taskLists, listIndex, service, async () => {
+      clr();
+      clr = await displayList(activeList);
+    });
 
   const navigate = delta => async () => {
     clr();
