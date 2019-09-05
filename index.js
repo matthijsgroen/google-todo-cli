@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const blessed = require("blessed");
 const { getTaskService } = require("./src/lib/task-service");
 const theme = require("./src/lib/theme");
