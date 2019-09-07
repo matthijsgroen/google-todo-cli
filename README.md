@@ -18,3 +18,14 @@ either.
 ## Usage
 
 `todo-list`
+
+## Keys:
+
+- `j/k`/arrows - move selection
+- `1/2` - previous/next list
+- `3` - refresh list
+- `esc/Ctrl-c` - quit
+- Enter - edit item
+- `A` - add item underneath selected item
+- `D` - Delete task (hide if task is completed)
+- `x` - Complete/open task
