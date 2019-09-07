@@ -5,20 +5,60 @@ const LOADING_TITLE = "[ loading... ]";
 const ROOT_LEVEL = undefined;
 
 const displayTaskLine = task =>
-  `${task.parent ? "  " : ""}[${task.status === "completed" ? "X" : " "}] ${
-    task.title
-  }`;
+  `${task.parent ? "  " : ""}${
+    task.status === "new"
+      ? " * "
+      : `[${task.status === "completed" ? "X" : " "}]`
+  } ${task.title}`;
 
 const getSortedSiblings = (tasks, parent) =>
   tasks
     .filter(item => item.parent === parent)
     .sort((a, b) => ("" + a.position).localeCompare("" + b.position));
 
-const taskList = (screen, store, { fetchTasks }) => {
+const taskList = (
+  screen,
+  store,
+  { fetchTasks, toggleTask, addTask, editTask, removeTask }
+) => {
   const props = {
     label: LOADING_TITLE,
     currentList: null,
     items: []
+  };
+
+  const promptAdd = previousTaskId => {
+    const prompt = blessed.prompt({
+      left: "center",
+      top: "center",
+      height: "shrink",
+      width: "100%",
+      ...theme.BOX_STYLING
+    });
+    screen.append(prompt);
+    prompt.input("New task name", "", (err, data) => {
+      prompt.hide();
+      screen.render();
+      if (data === null) return;
+      addTask(previousTaskId, data);
+    });
+  };
+
+  const promptEdit = task => {
+    const prompt = blessed.prompt({
+      left: "center",
+      top: "center",
+      height: "shrink",
+      width: "100%",
+      ...theme.BOX_STYLING
+    });
+    screen.append(prompt);
+    prompt.input("Edit task name", task.title, (err, data) => {
+      prompt.hide();
+      screen.render();
+      if (data === null) return;
+      editTask(task.id, data);
+    });
   };
 
   const taskScreen = blessed.box({
@@ -47,6 +87,36 @@ const taskList = (screen, store, { fetchTasks }) => {
     alwaysScroll: true,
     tags: true,
     items: props.items
+  });
+
+  let selectedIndex = null;
+  list.on("select item", (item, index) => {
+    selectedIndex = index;
+  });
+  list.on("keypress", char => {
+    const selectedTask = props.displayItems[selectedIndex];
+    if (selectedTask && selectedTask.id !== "new" && char === "x") {
+      toggleTask(selectedTask.id);
+    }
+    if (selectedTask && selectedTask.id !== "new" && char === "a") {
+      promptAdd(selectedTask.id);
+    }
+    if (selectedTask && selectedTask.id !== "new" && char === "D") {
+      removeTask(selectedTask.id);
+    }
+  });
+
+  list.on("action", async () => {
+    const selectedTask = props.displayItems[selectedIndex];
+    if (selectedTask && selectedTask.id === "new") {
+      const bottomTask = props.displayItems
+        .filter(i => i.parent === ROOT_LEVEL && i.id !== "new")
+        .slice(-1)[0];
+      promptAdd(bottomTask && bottomTask.id);
+    }
+    if (selectedTask && selectedTask.id !== "new") {
+      promptEdit(selectedTask);
+    }
   });
 
   const unsubscribe = store.subscribe(() => {

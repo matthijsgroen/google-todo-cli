@@ -1,5 +1,12 @@
 const fs = require("fs");
+const path = require("path");
 const readline = require("readline");
+const homedir = require("os").homedir();
+
+const folderPreferences = [process.env.XDG_CONFIG_HOME, homedir].filter(
+  Boolean
+);
+
 const { google } = require("googleapis");
 
 // If modifying these scopes, delete token.json.
@@ -7,12 +14,34 @@ const SCOPES = ["https://www.googleapis.com/auth/tasks"];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = "token.json";
+
+const settingsPath = path.join(folderPreferences[0], ".google-task-cli");
+const TOKEN_PATH = path.join(settingsPath, "token.json");
+
+const setupCompleted = () => {
+  if (!fs.existsSync(settingsPath)) {
+    fs.mkdirSync(settingsPath);
+  }
+  const credentialsPath = path.join(settingsPath, "credentials.json");
+  return fs.existsSync(credentialsPath);
+};
+
+const setup = pathToCredentials => {
+  if (!fs.existsSync(pathToCredentials)) return false;
+  const credentialsPath = path.join(settingsPath, "credentials.json");
+  fs.copyFileSync(pathToCredentials, credentialsPath);
+  return true;
+};
 
 const getTaskService = () =>
   new Promise((resolve, reject) => {
+    if (!fs.existsSync(settingsPath)) {
+      fs.mkdirSync(settingsPath);
+    }
+    const credentialsPath = path.join(settingsPath, "credentials.json");
+
     // Load client secrets from a local file.
-    fs.readFile("credentials.json", (err, content) => {
+    fs.readFile(credentialsPath, (err, content) => {
       if (err) return reject(err);
       // Authorize a client with credentials, then call the Google Tasks API.
       authorize(JSON.parse(content), auth => {
@@ -76,5 +105,7 @@ function getNewToken(oAuth2Client, callback) {
 }
 
 module.exports = {
-  getTaskService
+  getTaskService,
+  setupCompleted,
+  setup
 };
