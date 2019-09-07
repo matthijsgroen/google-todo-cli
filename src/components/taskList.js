@@ -77,7 +77,7 @@ const taskList = (
   const list = blessed.list({
     parent: taskScreen,
     top: 0,
-    bottom: 7,
+    bottom: 0,
     style: theme.LIST_STYLING,
     focused: true,
     mouse: true,
