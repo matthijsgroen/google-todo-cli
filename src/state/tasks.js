@@ -3,6 +3,12 @@ const UPDATE_TASK = "UPDATE-TASK";
 const ADD_TASK = "ADD-TASK";
 const DELETE_TASK = "DELETE-TASK";
 
+const TASK_STATUS = {
+  COMPLETE: "completed",
+  OPEN: "needsAction",
+  NEW: "new"
+};
+
 const INITIAL_STATE = {};
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -60,10 +66,10 @@ const reducer = (state = INITIAL_STATE, action) => {
 
 const CACHE_TIME = 5 * 60e3;
 
-const fetch = async (store, service, listId) => {
+const fetch = async (store, service, listId, cacheTime = CACHE_TIME) => {
   const state = store.getState();
   const currentList = state.tasks[listId];
-  if (currentList && currentList.time > new Date() * 1 - CACHE_TIME) {
+  if (currentList && currentList.time > new Date() * 1 - cacheTime) {
     return;
   }
 
@@ -87,7 +93,9 @@ const toggle = async (store, service, taskId) => {
   );
 
   const newStatus =
-    currentTask.status === "completed" ? "needsAction" : "completed";
+    currentTask.status === TASK_STATUS.COMPLETE
+      ? TASK_STATUS.OPEN
+      : TASK_STATUS.COMPLETE;
 
   store.dispatch({
     type: UPDATE_TASK,
@@ -125,7 +133,7 @@ const add = async (store, service, previousId, name) => {
     previous: previousTask && previousTask.id,
     data: {
       id,
-      status: "new",
+      status: TASK_STATUS.NEW,
       parent: previousTask && previousTask.parent,
       position: previousTask ? previousTask.position + "1" : "",
       title: name
@@ -138,7 +146,7 @@ const add = async (store, service, previousId, name) => {
     parent: previousTask && previousTask.parent,
     requestBody: {
       kind: "tasks#task",
-      status: "needsAction",
+      status: TASK_STATUS.OPEN,
       title: name
     }
   });
@@ -191,10 +199,21 @@ const remove = (store, service, taskId) => {
     id: task.id
   });
 
-  service.tasks.delete({
-    tasklist: currentList.id,
-    task: task.id
-  });
+  if (task.status === TASK_STATUS.COMPLETE) {
+    service.tasks.update({
+      tasklist: currentList.id,
+      task: task.id,
+      requestBody: {
+        id: task.id,
+        hidden: true
+      }
+    });
+  } else {
+    service.tasks.delete({
+      tasklist: currentList.id,
+      task: task.id
+    });
+  }
 };
 
 module.exports = {

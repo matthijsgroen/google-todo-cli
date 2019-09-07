@@ -123,8 +123,8 @@ const taskList = (
     let propUpdated = false;
     const state = store.getState();
 
-    const activeIndex = state.taskLists.activeList;
     const amountList = state.taskLists.lists.length;
+    const activeIndex = state.taskLists.activeList;
     const activeList = state.taskLists.lists[activeIndex];
 
     if (activeList) {

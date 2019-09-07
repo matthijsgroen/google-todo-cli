@@ -1,7 +1,7 @@
 const blessed = require("blessed");
 const { prevList, nextList } = require("../state/taskLists");
 
-const listbar = (screen, store) => {
+const listbar = (screen, store, { refreshList }) => {
   const bar = blessed.listbar({
     parent: screen,
     mouse: true,
@@ -24,7 +24,12 @@ const listbar = (screen, store) => {
       },
       Refresh: {
         keys: ["3"],
-        callback: () => {}
+        callback: () => {
+          const state = store.getState();
+          const activeIndex = state.taskLists.activeList;
+          const activeList = state.taskLists.lists[activeIndex];
+          refreshList(activeList.id);
+        }
       }
     }
   });
