@@ -45,8 +45,8 @@ const main = async () => {
 
   const service = await getTaskService();
   listbar(screen, store, {
-    refreshList: listId => {
-      fetchTasks(store, service, listId, 0);
+    refreshList: (listId, clear = false) => {
+      fetchTasks(store, service, listId, clear, 0);
     }
   });
   taskList(screen, store, {

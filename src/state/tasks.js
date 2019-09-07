@@ -66,13 +66,24 @@ const reducer = (state = INITIAL_STATE, action) => {
 
 const CACHE_TIME = 5 * 60e3;
 
-const fetch = async (store, service, listId, cacheTime = CACHE_TIME) => {
+const fetch = async (
+  store,
+  service,
+  listId,
+  clear = false,
+  cacheTime = CACHE_TIME
+) => {
   const state = store.getState();
   const currentList = state.tasks[listId];
-  if (currentList && currentList.time > new Date() * 1 - cacheTime) {
+  if (currentList && currentList.time > new Date() * 1 - cacheTime && !clear) {
     return;
   }
 
+  if (clear) {
+    await service.tasks.clear({
+      tasklist: listId
+    });
+  }
   const res = await service.tasks.list({
     tasklist: listId
   });

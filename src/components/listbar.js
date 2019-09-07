@@ -30,6 +30,15 @@ const listbar = (screen, store, { refreshList }) => {
           const activeList = state.taskLists.lists[activeIndex];
           refreshList(activeList.id);
         }
+      },
+      "Clear completed": {
+        keys: ["4"],
+        callback: () => {
+          const state = store.getState();
+          const activeIndex = state.taskLists.activeList;
+          const activeList = state.taskLists.lists[activeIndex];
+          refreshList(activeList.id, true);
+        }
       }
     }
   });
