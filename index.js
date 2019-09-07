@@ -1,10 +1,15 @@
 #!/usr/bin/env node
+const store = require("./src/state/store");
 
 const blessed = require("blessed");
 const { getTaskService } = require("./src/lib/task-service");
-const theme = require("./src/lib/theme");
 
-const ROOT_LEVEL = undefined;
+const fetchTaskLists = require("./src/state/taskLists").fetch;
+const fetchTasks = require("./src/state/tasks").fetch;
+const listbar = require("./src/components/listbar");
+const taskList = require("./src/components/taskList");
+
+/*
 const showTaskList = async (
   screen,
   tasklists,
@@ -18,54 +23,6 @@ const showTaskList = async (
     tasklist: tasklist.id
   });
 
-  const taskScreen = blessed.box({
-    parent: screen,
-    ...theme.BOX_STYLING,
-    top: 0,
-    right: 0,
-    width: "100%",
-    height: "100%-1",
-    label: {
-      text: `[ ${tasklist.title} ${activeList + 1} / ${tasklists.length} ]`,
-      side: "center"
-    }
-  });
-
-  const getSortedSiblings = parent =>
-    tasks.data.items
-      .filter(item => item.parent === parent)
-      .sort((a, b) => ("" + a.position).localeCompare("" + b.position));
-
-  const displayItems = getSortedSiblings(ROOT_LEVEL)
-    .reduce(
-      (list, parent) =>
-        list.concat(parent).concat(getSortedSiblings(parent.id)),
-      []
-    )
-    .concat({ id: "new" });
-
-  const displayTaskLine = task =>
-    `${task.parent ? "  " : ""}[${task.status === "completed" ? "X" : " "}] ${
-      task.title
-    }`;
-
-  const list = blessed.list({
-    parent: taskScreen,
-    top: 0,
-    bottom: 7,
-    style: theme.LIST_STYLING,
-    focused: true,
-    mouse: true,
-    keys: true,
-    vi: true,
-    scrollable: true,
-    alwaysScroll: true,
-    tags: true,
-    items: displayItems
-      .slice(0, -1)
-      .map(displayTaskLine)
-      .concat(" +  Add new task")
-  });
   let selectedIndex = null;
   list.on("select item", (item, index) => {
     selectedIndex = index;
@@ -156,26 +113,31 @@ const showTaskList = async (
   };
   return clear;
 };
+*/
 
 const main = async () => {
-  const service = await getTaskService();
-
-  const res = await service.tasklists.list({
-    maxResults: 10
-  });
-  const taskLists = res.data.items;
-
   const screen = blessed.screen({
     smartCSR: true,
     fullUnicode: true
   });
   screen.title = "Todo CLI";
-
   // Quit on Escape, q, or Control-C.
   screen.key(["escape", "q", "C-c"], function(ch, key) {
     return process.exit(0);
   });
 
+  listbar(screen, store);
+  taskList(screen, store, {
+    fetchTasks: listId => {
+      fetchTasks(store, service, listId);
+    }
+  });
+  screen.render();
+
+  const service = await getTaskService();
+  fetchTaskLists(store, service);
+
+  /*
   let clr = () => {};
   let activeList = 0;
 
@@ -191,29 +153,8 @@ const main = async () => {
     clr = await displayList(activeList);
   };
 
-  const bar = blessed.listbar({
-    parent: screen,
-    mouse: true,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 1,
-    commands: {
-      Prev: {
-        keys: ["1"],
-        callback: navigate(-1)
-      },
-      Next: {
-        keys: ["2"],
-        callback: navigate(1)
-      },
-      Refresh: {
-        keys: ["3"],
-        callback: navigate(0)
-      }
-    }
-  });
   clr = await displayList(activeList);
+  */
 };
 
 main();

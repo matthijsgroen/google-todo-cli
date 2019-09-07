@@ -5,9 +5,12 @@
   "author": "Matthijs Groen <matthijs.groen@gmail.com>",
   "license": "MIT",
   "private": false,
-  "bin": { "todo-list": "./index.js" },
+  "bin": {
+    "todo-list": "./index.js"
+  },
   "dependencies": {
     "blessed": "^0.1.81",
-    "googleapis": "39"
+    "googleapis": "39",
+    "redux": "^4.0.4"
   }
 }
