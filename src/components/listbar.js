@@ -31,7 +31,7 @@ const listbar = (screen, store, { refreshList }) => {
           refreshList(activeList.id);
         }
       },
-      "Clear completed": {
+      Clear: {
         keys: ["4"],
         callback: () => {
           const state = store.getState();
