@@ -22,6 +22,7 @@ either.
 ## Keys:
 
 - `j/k`/arrows - move selection
+- `g/G` - top/bottom of list
 - `1/2` - previous/next list
 - `3` - refresh list
 - `esc/Ctrl-c` - quit
