@@ -6,7 +6,9 @@ const ROOT_LEVEL = undefined;
 
 const displayTaskLine = task =>
   `${task.parent ? "  " : ""}${
-    task.status === "new"
+    task.moving
+      ? "-> "
+      : task.status === "new"
       ? " * "
       : `[${task.status === "completed" ? "X" : " "}]`
   } ${task.title}`;
@@ -19,12 +21,21 @@ const getSortedSiblings = (tasks, parent) =>
 const taskList = (
   screen,
   store,
-  { fetchTasks, toggleTask, addTask, addSubTask, editTask, removeTask }
+  {
+    fetchTasks,
+    toggleTask,
+    addTask,
+    addSubTask,
+    editTask,
+    removeTask,
+    moveTask
+  }
 ) => {
   const props = {
     label: LOADING_TITLE,
     currentList: null,
-    items: []
+    items: [],
+    moveMutation: null
   };
 
   const createPrompt = (name, value = "") =>
@@ -94,6 +105,8 @@ const taskList = (
     parent: taskScreen,
     top: 0,
     bottom: 0,
+    width: "100%-2",
+    left: -4,
     style: theme.LIST_STYLING,
     focused: true,
     mouse: true,
@@ -106,6 +119,7 @@ const taskList = (
   });
 
   let selectedIndex = null;
+  let moveMutation = null;
   list.on("select item", (item, index) => {
     selectedIndex = index;
   });
@@ -124,6 +138,9 @@ const taskList = (
       char === "s"
     ) {
       await promptAddSubtask(selectedTask.id);
+    }
+    if (selectedTask && selectedTask.id !== "new" && char === "m") {
+      moveMutation = moveTask(selectedTask.id);
     }
     if (selectedTask && selectedTask.id !== "new" && char === "D") {
       const result = await confirm("Are you sure?");
@@ -151,6 +168,7 @@ const taskList = (
     const amountList = state.taskLists.lists.length;
     const activeIndex = state.taskLists.activeList;
     const activeList = state.taskLists.lists[activeIndex];
+    const moveMutation = state.taskLists.moveMutation;
 
     if (activeList) {
       const taskItems = state.tasks[activeList.id];
@@ -160,8 +178,12 @@ const taskList = (
         list.setItems(["Loading..."]);
         propUpdated = true;
       }
-      if (taskItems && props.items !== taskItems.items) {
+      if (
+        taskItems &&
+        (props.items !== taskItems.items || moveMutation !== props.moveMutation)
+      ) {
         props.items = taskItems.items;
+        props.moveMutation = moveMutation;
 
         props.displayItems = getSortedSiblings(props.items, ROOT_LEVEL)
           .reduce(
@@ -170,6 +192,11 @@ const taskList = (
                 .concat(parent)
                 .concat(getSortedSiblings(props.items, parent.id)),
             []
+          )
+          .map(item =>
+            moveMutation && moveMutation.taskId === item.id
+              ? { ...item, moving: true }
+              : item
           )
           .concat({ id: "new" });
 

@@ -9,6 +9,7 @@ const {
 } = require("./src/lib/task-service");
 
 const fetchTaskLists = require("./src/state/taskLists").fetch;
+const moveTask = require("./src/state/taskLists").moveTask;
 const fetchTasks = require("./src/state/tasks").fetch;
 const toggleTask = require("./src/state/tasks").toggle;
 const addTask = require("./src/state/tasks").add;
@@ -45,29 +46,18 @@ const main = async () => {
 
   const service = await getTaskService();
   listbar(screen, store, {
-    refreshList: (listId, clear = false) => {
-      fetchTasks(store, service, listId, clear, 0);
-    }
+    refreshList: (listId, clear = false) =>
+      fetchTasks(store, service, listId, clear, 0)
   });
   taskList(screen, store, {
-    fetchTasks: listId => {
-      fetchTasks(store, service, listId);
-    },
-    toggleTask: taskId => {
-      toggleTask(store, service, taskId);
-    },
-    addTask: (previousId, name) => {
-      addTask(store, service, previousId, name);
-    },
-    addSubTask: (parentId, name) => {
-      addTask(store, service, undefined, name, parentId);
-    },
-    editTask: (taskId, newName) => {
-      editTask(store, service, taskId, newName);
-    },
-    removeTask: taskId => {
-      removeTask(store, service, taskId);
-    }
+    fetchTasks: listId => fetchTasks(store, service, listId),
+    toggleTask: taskId => toggleTask(store, service, taskId),
+    addTask: (previousId, name) => addTask(store, service, previousId, name),
+    addSubTask: (parentId, name) =>
+      addTask(store, service, undefined, name, parentId),
+    editTask: (taskId, newName) => editTask(store, service, taskId, newName),
+    removeTask: taskId => removeTask(store, service, taskId),
+    moveTask: taskId => moveTask(store, service, taskId)
   });
   screen.render();
 
