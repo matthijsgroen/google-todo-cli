@@ -7,7 +7,9 @@ const ROOT_LEVEL = undefined;
 const displayTaskLine = task =>
   `${task.parent ? "  " : ""}${
     task.moving
-      ? "-> "
+      ? task.saving
+        ? " * "
+        : "-> "
       : task.status === "new"
       ? " * "
       : `[${task.status === "completed" ? "X" : " "}]`
@@ -34,7 +36,8 @@ const taskList = (
     addSubTask,
     editTask,
     removeTask,
-    moveTask
+    moveTask,
+    completeMove
   }
 ) => {
   const props = {
@@ -132,7 +135,7 @@ const taskList = (
     if (!props.ready) return;
     const selectedTask =
       selectedIndex !== null && props.displayItems[selectedIndex];
-    if (selectedTask && selectedTask.moving) {
+    if (selectedTask && selectedTask.moving && !selectedTask.saving) {
       const delta = index - selectedIndex;
       selectedIndex = index;
       if (delta === 0 || !moveMutation) return;
@@ -168,7 +171,12 @@ const taskList = (
       await promptAddSubtask(selectedTask.id);
     }
     if (selectedTask && selectedTask.id !== "new" && char === "m") {
-      moveMutation = moveTask(selectedTask.id);
+      if (moveMutation) {
+        moveMutation.cancel();
+        moveMutation = null;
+      } else {
+        moveMutation = moveTask(selectedTask.id);
+      }
     }
     if (selectedTask && selectedTask.id !== "new" && char === "D") {
       const result = await confirm("Are you sure?");
@@ -185,7 +193,12 @@ const taskList = (
       promptAdd(bottomTask && bottomTask.id);
     }
     if (selectedTask && selectedTask.id !== "new") {
-      promptEdit(selectedTask);
+      if (moveMutation && !moveMutation.saving) {
+        completeMove(moveMutation);
+        moveMutation = null;
+      } else {
+        promptEdit(selectedTask);
+      }
     }
   });
 
@@ -220,7 +233,8 @@ const taskList = (
                 ...i,
                 position: moveMutation.newPosition,
                 parent: moveMutation.newParent,
-                moving: true
+                moving: true,
+                saving: moveMutation.saving
               }
             : i
         );

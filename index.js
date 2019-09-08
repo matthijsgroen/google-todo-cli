@@ -57,7 +57,12 @@ const main = async () => {
       addTask(store, service, undefined, name, parentId),
     editTask: (taskId, newName) => editTask(store, service, taskId, newName),
     removeTask: taskId => removeTask(store, service, taskId),
-    moveTask: taskId => moveTask(store, service, taskId)
+    moveTask: taskId => moveTask(store, service, taskId),
+    completeMove: async mutation => {
+      await mutation.confirm();
+      await fetchTasks(store, service, mutation.listId, false, 0);
+      mutation.cancel();
+    }
   });
   screen.render();
 

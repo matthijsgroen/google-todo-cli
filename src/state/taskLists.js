@@ -3,8 +3,9 @@ const NEXT_LIST = "NEXT-LIST";
 const PREV_LIST = "PREV-LIST";
 const START_MOVE = "START-MOVE";
 const MOVE = "MOVE";
-//const END_MOVE = "END-MOVE";
 const CANCEL_MOVE = "CANCEL-MOVE";
+const STORE_MOVE = "STORE-MOVE";
+const UPDATE_TASK = "UPDATE-TASK";
 const ROOT_LEVEL = undefined;
 
 const INITIAL_STATE = {
@@ -45,7 +46,8 @@ const reducer = (state = INITIAL_STATE, action) => {
       moveMutation: {
         taskId: action.taskId,
         newParent: action.newParent,
-        newPosition: action.newPosition
+        newPosition: action.newPosition,
+        position: "NEW"
       }
     };
   }
@@ -60,6 +62,15 @@ const reducer = (state = INITIAL_STATE, action) => {
             ? undefined
             : action.newPosition + "1",
         position: action.newPosition
+      }
+    };
+  }
+  if (action.type === STORE_MOVE) {
+    return {
+      ...state,
+      moveMutation: {
+        ...state.moveMutation,
+        saving: true
       }
     };
   }
@@ -123,6 +134,7 @@ const moveTask = (store, service, taskId) => {
   });
 
   return {
+    listId: currentList.id,
     moveUp: () => {
       const currentMutation = store.getState().taskLists.moveMutation;
       const orderedList = getCurrentListOrdered(store, {
@@ -248,6 +260,34 @@ const moveTask = (store, service, taskId) => {
       store.dispatch({
         type: CANCEL_MOVE
       });
+    },
+    confirm: async () => {
+      const state = store.getState();
+      const currentList = state.taskLists.lists[state.taskLists.activeList];
+      const currentMutation = state.taskLists.moveMutation;
+      if (currentMutation.position === "NEW") {
+        store.dispatch({
+          type: CANCEL_MOVE
+        });
+        return;
+      }
+      store.dispatch({
+        type: STORE_MOVE
+      });
+      const tasks = state.tasks[currentList.id].items;
+      const previous = tasks.find(
+        i =>
+          i.parent === currentMutation.newParent &&
+          i.position === currentMutation.position
+      );
+
+      const payload = {
+        task: currentMutation.taskId,
+        tasklist: currentList.id,
+        parent: currentMutation.newParent,
+        previous: previous && previous.id
+      };
+      const res = await service.tasks.move(payload);
     }
   };
 };
