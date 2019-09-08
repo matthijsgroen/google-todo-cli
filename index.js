@@ -59,6 +59,9 @@ const main = async () => {
     addTask: (previousId, name) => {
       addTask(store, service, previousId, name);
     },
+    addSubTask: (parentId, name) => {
+      addTask(store, service, undefined, name, parentId);
+    },
     editTask: (taskId, newName) => {
       editTask(store, service, taskId, newName);
     },

@@ -25,8 +25,10 @@ either.
 - `g/G` - top/bottom of list
 - `1/2` - previous/next list
 - `3` - refresh list
+- `4` - clear all completed tasks
 - `esc/Ctrl-c` - quit
 - Enter - edit item
-- `A` - add item underneath selected item
-- `D` - Delete task (hide if task is completed)
+- `a` - add item underneath selected item
+- `s` - add item as subtask of selected item
+- `D` - Delete task
 - `x` - Complete/open task

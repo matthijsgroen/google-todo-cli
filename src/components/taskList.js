@@ -19,7 +19,7 @@ const getSortedSiblings = (tasks, parent) =>
 const taskList = (
   screen,
   store,
-  { fetchTasks, toggleTask, addTask, editTask, removeTask }
+  { fetchTasks, toggleTask, addTask, addSubTask, editTask, removeTask }
 ) => {
   const props = {
     label: LOADING_TITLE,
@@ -27,38 +27,54 @@ const taskList = (
     items: []
   };
 
-  const promptAdd = previousTaskId => {
-    const prompt = blessed.prompt({
-      left: "center",
-      top: "center",
-      height: "shrink",
-      width: "100%",
-      ...theme.BOX_STYLING
+  const createPrompt = (name, value = "") =>
+    new Promise(resolve => {
+      const prompt = blessed.prompt({
+        left: "center",
+        top: "center",
+        height: "shrink",
+        width: "100%",
+        ...theme.BOX_STYLING
+      });
+      screen.append(prompt);
+      prompt.input(name, value, (err, data) => {
+        prompt.hide();
+        screen.render();
+        resolve(data);
+      });
     });
-    screen.append(prompt);
-    prompt.input("New task name", "", (err, data) => {
-      prompt.hide();
-      screen.render();
-      if (data === null) return;
-      addTask(previousTaskId, data);
+
+  const confirm = name =>
+    new Promise(resolve => {
+      const prompt = blessed.question({
+        left: "center",
+        top: "center",
+        height: "shrink",
+        width: "100%",
+        ...theme.BOX_STYLING
+      });
+      screen.append(prompt);
+      prompt.ask(name, (err, data) => {
+        resolve(data);
+      });
     });
+
+  const promptAdd = async previousTaskId => {
+    const data = await createPrompt("New task name");
+    if (data === null) return;
+    addTask(previousTaskId, data);
   };
 
-  const promptEdit = task => {
-    const prompt = blessed.prompt({
-      left: "center",
-      top: "center",
-      height: "shrink",
-      width: "100%",
-      ...theme.BOX_STYLING
-    });
-    screen.append(prompt);
-    prompt.input("Edit task name", task.title, (err, data) => {
-      prompt.hide();
-      screen.render();
-      if (data === null) return;
-      editTask(task.id, data);
-    });
+  const promptAddSubtask = async parentTaskId => {
+    const data = await createPrompt("New sub-task name");
+    if (data === null) return;
+    addSubTask(parentTaskId, data);
+  };
+
+  const promptEdit = async task => {
+    const data = await createPrompt("Edit task name", task.title);
+    if (data === null) return;
+    editTask(task.id, data);
   };
 
   const taskScreen = blessed.box({
@@ -93,16 +109,25 @@ const taskList = (
   list.on("select item", (item, index) => {
     selectedIndex = index;
   });
-  list.on("keypress", char => {
+  list.on("keypress", async char => {
     const selectedTask = props.displayItems[selectedIndex];
     if (selectedTask && selectedTask.id !== "new" && char === "x") {
       toggleTask(selectedTask.id);
     }
     if (selectedTask && selectedTask.id !== "new" && char === "a") {
-      promptAdd(selectedTask.id);
+      await promptAdd(selectedTask.id);
+    }
+    if (
+      selectedTask &&
+      selectedTask.id !== "new" &&
+      selectedTask.parent === undefined &&
+      char === "s"
+    ) {
+      await promptAddSubtask(selectedTask.id);
     }
     if (selectedTask && selectedTask.id !== "new" && char === "D") {
-      removeTask(selectedTask.id);
+      const result = await confirm("Are you sure?");
+      if (result) removeTask(selectedTask.id);
     }
   });
 

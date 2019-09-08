@@ -85,7 +85,8 @@ const fetch = async (
     });
   }
   const res = await service.tasks.list({
-    tasklist: listId
+    tasklist: listId,
+    maxResults: 100
   });
   const tasks = res.data.items;
   store.dispatch({
@@ -128,7 +129,7 @@ const toggle = async (store, service, taskId) => {
 
 let tempCounter = 0;
 
-const add = async (store, service, previousId, name) => {
+const add = async (store, service, previousId, name, parentId = undefined) => {
   const state = store.getState();
   const currentList = state.taskLists.lists[state.taskLists.activeList];
   const previousTask = state.tasks[currentList.id].items.find(
@@ -145,7 +146,7 @@ const add = async (store, service, previousId, name) => {
     data: {
       id,
       status: TASK_STATUS.NEW,
-      parent: previousTask && previousTask.parent,
+      parent: (previousTask && previousTask.parent) || parentId,
       position: previousTask ? previousTask.position + "1" : "",
       title: name
     }
@@ -154,7 +155,7 @@ const add = async (store, service, previousId, name) => {
   const res = await service.tasks.insert({
     tasklist: currentList.id,
     previous: previousTask && previousTask.id,
-    parent: previousTask && previousTask.parent,
+    parent: (previousTask && previousTask.parent) || parentId,
     requestBody: {
       kind: "tasks#task",
       status: TASK_STATUS.OPEN,
@@ -210,21 +211,10 @@ const remove = (store, service, taskId) => {
     id: task.id
   });
 
-  if (task.status === TASK_STATUS.COMPLETE) {
-    service.tasks.update({
-      tasklist: currentList.id,
-      task: task.id,
-      requestBody: {
-        id: task.id,
-        hidden: true
-      }
-    });
-  } else {
-    service.tasks.delete({
-      tasklist: currentList.id,
-      task: task.id
-    });
-  }
+  service.tasks.delete({
+    tasklist: currentList.id,
+    task: task.id
+  });
 };
 
 module.exports = {
