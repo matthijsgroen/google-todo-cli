@@ -40,12 +40,15 @@ const main = async () => {
     fullUnicode: true
   });
   screen.title = "Todo CLI";
-  // Quit on q, or Control-C.
-  screen.key(["q", "C-c"], function(ch, key) {
+  screen.key(["C-c"], function(ch, key) {
     return process.exit(0);
   });
 
   const service = await getTaskService();
+  // Quit on q, or Control-C.
+  screen.key(["q"], function(ch, key) {
+    return process.exit(0);
+  });
   listbar(screen, store, {
     refreshList: (listId, clear = false) =>
       fetchTasks(store, service, listId, clear, 0)
