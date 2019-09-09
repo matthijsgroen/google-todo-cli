@@ -8,13 +8,14 @@ const {
   setup
 } = require("./src/lib/task-service");
 
-const fetchTaskLists = require("./src/state/taskLists").fetch;
-const moveTask = require("./src/state/taskLists").moveTask;
-const fetchTasks = require("./src/state/tasks").fetch;
-const toggleTask = require("./src/state/tasks").toggle;
-const addTask = require("./src/state/tasks").add;
-const editTask = require("./src/state/tasks").edit;
-const removeTask = require("./src/state/tasks").remove;
+const { moveTask, fetch: fetchTaskLists } = require("./src/state/taskLists");
+const {
+  fetch: fetchTasks,
+  toggle: toggleTask,
+  add: addTask,
+  edit: editTask,
+  remove: removeTask
+} = require("./src/state/tasks");
 const listbar = require("./src/components/listbar");
 const taskList = require("./src/components/taskList");
 
