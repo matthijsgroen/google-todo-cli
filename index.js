@@ -8,7 +8,11 @@ const {
   setup
 } = require("./src/lib/task-service");
 
-const { moveTask, fetch: fetchTaskLists } = require("./src/state/taskLists");
+const {
+  moveTask,
+  fetch: fetchTaskLists,
+  saveSettings
+} = require("./src/state/taskLists");
 const {
   fetch: fetchTasks,
   toggle: toggleTask,
@@ -43,7 +47,14 @@ const main = async () => {
   });
   screen.title = "Todo CLI";
   // Quit on q, or Control-C.
-  screen.key(["q", "C-c"], function(ch, key) {
+  screen.key(["q", "C-c"], async () => {
+    const state = store.getState();
+    const currentList = state.taskLists.lists[state.taskLists.activeList];
+
+    await saveSettings({
+      list: currentList.id
+    });
+
     return process.exit(0);
   });
   listbar(screen, store, {

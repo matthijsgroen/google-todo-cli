@@ -1,3 +1,16 @@
+const fs = require("fs");
+const path = require("path");
+const homedir = require("os").homedir();
+
+const folderPreferences = [process.env.XDG_CONFIG_HOME, homedir].filter(
+  Boolean
+);
+const settingsPath = path.join(
+  folderPreferences[0],
+  ".google-task-cli",
+  "settings.json"
+);
+
 const UPDATE_LISTS = "UPDATE-LISTS";
 const NEXT_LIST = "NEXT-LIST";
 const PREV_LIST = "PREV-LIST";
@@ -21,6 +34,8 @@ const reducer = (state = INITIAL_STATE, action) => {
       ...state,
       time: action.time,
       lists: action.lists,
+      activeList:
+        action.active !== undefined ? action.active : state.activeList,
       moveMutation: null
     };
   }
@@ -84,14 +99,47 @@ const reducer = (state = INITIAL_STATE, action) => {
   return state;
 };
 
+const readSettings = () =>
+  new Promise((resolve, reject) => {
+    if (!fs.existsSync(settingsPath)) {
+      resolve({});
+    }
+
+    fs.readFile(settingsPath, (err, content) => {
+      if (err) return reject(err);
+      const settings = JSON.parse(content);
+      resolve(settings);
+    });
+  });
+
+const saveSettings = async folderSettings => {
+  const settings = await readSettings();
+  const updatedSettings = { ...settings, [process.cwd()]: folderSettings };
+  const p = new Promise((resolve, reject) =>
+    fs.writeFile(settingsPath, JSON.stringify(updatedSettings, null, 2), err =>
+      err ? reject(err) : resolve()
+    )
+  );
+  await p;
+};
+
 const fetch = async (store, service) => {
+  const settings = await readSettings();
+  const folderSettings = settings[process.cwd()] || {};
+
   const res = await service.tasklists.list({
     maxResults: 10
   });
   const taskLists = res.data.items;
+  const index = taskLists.indexOf(
+    taskLists.find(l => l.id === folderSettings.list)
+  );
+
+  // selectActiveTasklist based on folder
   store.dispatch({
     type: UPDATE_LISTS,
     lists: taskLists,
+    active: index !== undefined && index > -1 ? index : undefined,
     time: new Date() * 1
   });
 };
@@ -390,5 +438,6 @@ module.exports = {
   fetch,
   nextList: () => ({ type: NEXT_LIST }),
   prevList: () => ({ type: PREV_LIST }),
+  saveSettings,
   moveTask
 };

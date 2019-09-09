@@ -226,7 +226,7 @@ const taskList = (
     }
   });
 
-  list.on("action", async () => {
+  list.on("select", async () => {
     const selectedTask = props.displayItems[selectedIndex];
     if (selectedTask && selectedTask.id === "new") {
       const bottomTask = props.displayItems
