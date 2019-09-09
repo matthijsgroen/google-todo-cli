@@ -29,6 +29,7 @@ Bottom bar:
 - `2` - next list
 - `3` - refresh list
 - `4` - clear all completed tasks
+- `n` - create new tasklist
 
 Navigation:
 
@@ -42,5 +43,5 @@ Tasks:
 - `a` - add new item underneath selected item
 - `s` - add new item as subtask of selected item
 - `D` - Delete task
-- `m` - Move item. use arrows/`j/k` to move item. Enter to confirm, Esc to
+- `m` - Move item. use arrows/`j/k/l` to move item. Enter to confirm, Esc to
   cancel

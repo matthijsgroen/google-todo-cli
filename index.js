@@ -11,8 +11,10 @@ const {
 const {
   moveTask,
   fetch: fetchTaskLists,
-  saveSettings
+  saveSettings,
+  add: createTaskList
 } = require("./src/state/taskLists");
+
 const {
   fetch: fetchTasks,
   toggle: toggleTask,
@@ -20,6 +22,7 @@ const {
   edit: editTask,
   remove: removeTask
 } = require("./src/state/tasks");
+
 const listbar = require("./src/components/listbar");
 const taskList = require("./src/components/taskList");
 
@@ -59,7 +62,8 @@ const main = async () => {
   });
   listbar(screen, store, {
     refreshList: (listId, clear = false) =>
-      fetchTasks(store, service, listId, clear, 0)
+      fetchTasks(store, service, listId, clear, 0),
+    createList: name => createTaskList(store, service, name)
   });
   taskList(screen, store, {
     fetchTasks: listId => fetchTasks(store, service, listId),
@@ -79,6 +83,11 @@ const main = async () => {
   screen.render();
 
   fetchTaskLists(store, service);
+  setInterval(() => {
+    const state = store.getState();
+    const currentList = state.taskLists.lists[state.taskLists.activeList];
+    fetchTasks(store, service, currentList.id);
+  }, 3 * 60e3);
 };
 
 main();

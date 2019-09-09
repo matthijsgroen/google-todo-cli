@@ -12,6 +12,7 @@ const settingsPath = path.join(
 );
 
 const UPDATE_LISTS = "UPDATE-LISTS";
+const NEW_LIST = "NEW-LIST";
 const NEXT_LIST = "NEXT-LIST";
 const PREV_LIST = "PREV-LIST";
 const START_MOVE = "START-MOVE";
@@ -36,6 +37,15 @@ const reducer = (state = INITIAL_STATE, action) => {
       lists: action.lists,
       activeList:
         action.active !== undefined ? action.active : state.activeList,
+      moveMutation: null
+    };
+  }
+  if (action.type === NEW_LIST) {
+    const lists = state.lists.concat(action.list);
+    return {
+      ...state,
+      lists,
+      activeList: lists.length - 1,
       moveMutation: null
     };
   }
@@ -140,6 +150,20 @@ const fetch = async (store, service) => {
     type: UPDATE_LISTS,
     lists: taskLists,
     active: index !== undefined && index > -1 ? index : undefined,
+    time: new Date() * 1
+  });
+};
+
+const add = async (store, service, name) => {
+  const res = await service.tasklists.insert({
+    requestBody: {
+      kind: "tasks#taskList",
+      title: name
+    }
+  });
+  store.dispatch({
+    type: NEW_LIST,
+    list: res.data,
     time: new Date() * 1
   });
 };
@@ -435,6 +459,7 @@ const moveTask = (store, service, taskId) => {
 
 module.exports = {
   reducer,
+  add,
   fetch,
   nextList: () => ({ type: NEXT_LIST }),
   prevList: () => ({ type: PREV_LIST }),

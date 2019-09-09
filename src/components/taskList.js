@@ -1,5 +1,6 @@
 const blessed = require("blessed");
 const theme = require("./theme");
+const { createPrompt } = require("./prompt");
 
 const LOADING_TITLE = "[ loading... ]";
 const ROOT_LEVEL = undefined;
@@ -48,23 +49,6 @@ const taskList = (
     ready: true
   };
 
-  const createPrompt = (name, value = "") =>
-    new Promise(resolve => {
-      const prompt = blessed.prompt({
-        left: "center",
-        top: "center",
-        height: "shrink",
-        width: "100%",
-        ...theme.BOX_STYLING
-      });
-      screen.append(prompt);
-      prompt.input(name, value, (err, data) => {
-        prompt.hide();
-        screen.render();
-        resolve(data);
-      });
-    });
-
   const confirm = name =>
     new Promise(resolve => {
       const prompt = blessed.question({
@@ -81,19 +65,19 @@ const taskList = (
     });
 
   const promptAdd = async previousTaskId => {
-    const data = await createPrompt("New task name");
+    const data = await createPrompt(screen, "New task name");
     if (data === null) return;
     addTask(previousTaskId, data);
   };
 
   const promptAddSubtask = async parentTaskId => {
-    const data = await createPrompt("New sub-task name");
+    const data = await createPrompt(screen, "New sub-task name");
     if (data === null) return;
     addSubTask(parentTaskId, data);
   };
 
   const promptEdit = async task => {
-    const data = await createPrompt("Edit task name", task.title);
+    const data = await createPrompt(screen, "Edit task name", task.title);
     if (data === null) return;
     editTask(task.id, data);
   };
@@ -266,7 +250,10 @@ const taskList = (
         taskItems &&
         (props.items !== taskItems.items || moveMutation !== props.moveMutation)
       ) {
-        props.items = taskItems.items;
+        props.items = taskItems.items || [];
+        if (selectedIndex === null) {
+          selectedIndex = 0;
+        }
         props.moveMutation = moveMutation;
 
         const items = props.items

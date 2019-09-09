@@ -1,7 +1,8 @@
 const blessed = require("blessed");
 const { prevList, nextList } = require("../state/taskLists");
+const { createPrompt } = require("./prompt");
 
-const listbar = (screen, store, { refreshList }) => {
+const listbar = (screen, store, { refreshList, createList }) => {
   const bar = blessed.listbar({
     parent: screen,
     mouse: true,
@@ -38,6 +39,13 @@ const listbar = (screen, store, { refreshList }) => {
           const activeIndex = state.taskLists.activeList;
           const activeList = state.taskLists.lists[activeIndex];
           refreshList(activeList.id, true);
+        }
+      },
+      New: {
+        keys: ["n"],
+        callback: async () => {
+          const newListName = await createPrompt(screen, "New list name");
+          createList(newListName);
         }
       }
     }

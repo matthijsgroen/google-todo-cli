@@ -46,7 +46,7 @@ const reducer = (state = INITIAL_STATE, action) => {
       ...state,
       [action.list]: {
         ...list,
-        items: [action.data].concat(list.items)
+        items: [action.data].concat(list.items || [])
       }
     };
   }
@@ -132,7 +132,7 @@ let tempCounter = 0;
 const add = async (store, service, previousId, name, parentId = undefined) => {
   const state = store.getState();
   const currentList = state.taskLists.lists[state.taskLists.activeList];
-  const previousTask = state.tasks[currentList.id].items.find(
+  const previousTask = (state.tasks[currentList.id].items || []).find(
     t => t.id === previousId
   );
 
