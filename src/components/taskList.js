@@ -9,7 +9,7 @@ const displayTaskLine = task =>
     task.moving
       ? task.saving
         ? " * "
-        : "-> "
+        : `-> ${task.children > 0 ? `(+${task.children})` : ""}`
       : task.status === "new"
       ? " * "
       : `[${task.status === "completed" ? "X" : " "}]`
@@ -264,17 +264,20 @@ const taskList = (
         props.items = taskItems.items;
         props.moveMutation = moveMutation;
 
-        const items = props.items.map(i =>
-          moveMutation && moveMutation.taskId === i.id
-            ? {
-                ...i,
-                position: moveMutation.newPosition,
-                parent: moveMutation.newParent,
-                moving: true,
-                saving: moveMutation.saving
-              }
-            : i
-        );
+        const items = props.items
+          .filter(i => !moveMutation || moveMutation.taskId !== i.parent)
+          .map(i =>
+            moveMutation && moveMutation.taskId === i.id
+              ? {
+                  ...i,
+                  position: moveMutation.newPosition,
+                  parent: moveMutation.newParent,
+                  moving: true,
+                  saving: moveMutation.saving,
+                  children: moveMutation.hasChildren
+                }
+              : i
+          );
 
         props.displayItems = getSortedSiblings(items, ROOT_LEVEL)
           .reduce(

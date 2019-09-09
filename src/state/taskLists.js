@@ -47,7 +47,8 @@ const reducer = (state = INITIAL_STATE, action) => {
         taskId: action.taskId,
         newParent: action.newParent,
         newPosition: action.newPosition,
-        position: "NEW"
+        position: "NEW",
+        hasChildren: action.hasChildren
       }
     };
   }
@@ -106,7 +107,7 @@ const getSortedSiblings = (tasks, parent) =>
         : ("" + a.position).localeCompare("" + b.position)
     );
 
-const getCurrentListOrdered = (store, replace) => {
+const getCurrentListOrdered = (store, replace, nested = true) => {
   const state = store.getState();
   const currentList = state.taskLists.lists[state.taskLists.activeList];
   const currentListItems = state.tasks[currentList.id].items.map(i =>
@@ -116,7 +117,7 @@ const getCurrentListOrdered = (store, replace) => {
     (list, parent) =>
       list
         .concat(parent)
-        .concat(getSortedSiblings(currentListItems, parent.id)),
+        .concat(nested ? getSortedSiblings(currentListItems, parent.id) : []),
     []
   );
 };
@@ -124,17 +125,74 @@ const getCurrentListOrdered = (store, replace) => {
 const moveTask = (store, service, taskId) => {
   const state = store.getState();
   const currentList = state.taskLists.lists[state.taskLists.activeList];
-  const task = state.tasks[currentList.id].items.find(t => t.id === taskId);
+  const listItems = state.tasks[currentList.id].items;
+  const task = listItems.find(t => t.id === taskId);
+  const taskHasChildren = listItems.filter(i => i.parent === task.id).length;
 
   store.dispatch({
     type: START_MOVE,
     taskId: taskId,
     newParent: task.parent,
-    newPosition: task.position
+    newPosition: task.position,
+    hasChildren: taskHasChildren
   });
 
-  return {
-    listId: currentList.id,
+  const branchActions = {
+    moveUp: () => {
+      const currentMutation = store.getState().taskLists.moveMutation;
+      const orderedList = getCurrentListOrdered(
+        store,
+        {
+          id: currentMutation.taskId,
+          parent: currentMutation.newParent,
+          position: currentMutation.newPosition
+        },
+        false
+      );
+      const item = orderedList.find(i => i.id === taskId);
+      const itemIndex = orderedList.indexOf(item);
+      const previous = orderedList[itemIndex - 1];
+      if (!previous) return;
+      const earlier = orderedList[itemIndex - 2];
+      if (earlier) {
+        store.dispatch({
+          type: MOVE,
+          newParent: ROOT_LEVEL,
+          newPosition: earlier.position
+        });
+      } else {
+        store.dispatch({
+          type: MOVE,
+          newParent: ROOT_LEVEL,
+          newPosition: undefined
+        });
+      }
+    },
+    moveDown: () => {
+      const currentMutation = store.getState().taskLists.moveMutation;
+      const orderedList = getCurrentListOrdered(
+        store,
+        {
+          id: currentMutation.taskId,
+          parent: currentMutation.newParent,
+          position: currentMutation.newPosition
+        },
+        false
+      );
+      const item = orderedList.find(i => i.id === taskId);
+      const itemIndex = orderedList.indexOf(item);
+      const next = orderedList[itemIndex + 1];
+      if (!next) return;
+      store.dispatch({
+        type: MOVE,
+        newParent: ROOT_LEVEL,
+        newPosition: next.position
+      });
+    },
+    moveRight: () => {}
+  };
+
+  const leafActions = {
     moveUp: () => {
       const currentMutation = store.getState().taskLists.moveMutation;
       const orderedList = getCurrentListOrdered(store, {
@@ -282,7 +340,11 @@ const moveTask = (store, service, taskId) => {
         newParent: previous.id,
         newPosition: undefined
       });
-    },
+    }
+  };
+
+  const commonActions = {
+    listId: currentList.id,
     cancel: () => {
       store.dispatch({
         type: CANCEL_MOVE
@@ -317,6 +379,10 @@ const moveTask = (store, service, taskId) => {
       const res = await service.tasks.move(payload);
     }
   };
+
+  return taskHasChildren > 0
+    ? { ...commonActions, ...branchActions }
+    : { ...commonActions, ...leafActions };
 };
 
 module.exports = {
