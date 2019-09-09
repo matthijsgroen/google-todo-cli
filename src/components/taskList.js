@@ -170,7 +170,12 @@ const taskList = (
       return;
     }
     if (key.name === "escape" || key.name === "q") {
-      list.cancelSelected();
+      if (moveMutation) {
+        moveMutation.cancel();
+        moveMutation = null;
+      } else {
+        list.cancelSelected();
+      }
       return;
     }
     if (key.name === "g" && !key.shift) {

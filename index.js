@@ -40,8 +40,8 @@ const main = async () => {
     fullUnicode: true
   });
   screen.title = "Todo CLI";
-  // Quit on Escape, q, or Control-C.
-  screen.key(["escape", "q", "C-c"], function(ch, key) {
+  // Quit on q, or Control-C.
+  screen.key(["q", "C-c"], function(ch, key) {
     return process.exit(0);
   });
 

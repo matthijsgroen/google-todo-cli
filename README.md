@@ -21,14 +21,26 @@ either.
 
 ## Keys:
 
-- `j/k`/arrows - move selection
-- `g/G` - top/bottom of list
-- `1/2` - previous/next list
+- `q/Ctrl-c` - quit
+
+Bottom bar:
+
+- `1` - previous list
+- `2` - next list
 - `3` - refresh list
 - `4` - clear all completed tasks
-- `esc/Ctrl-c` - quit
-- Enter - edit item
-- `a` - add item underneath selected item
-- `s` - add item as subtask of selected item
-- `D` - Delete task
+
+Navigation:
+
+- `j/k`/arrows - move selection
+- `g/G` - top/bottom of list
+
+Tasks:
+
 - `x` - Complete/open task
+- Enter - edit item
+- `a` - add new item underneath selected item
+- `s` - add new item as subtask of selected item
+- `D` - Delete task
+- `m` - Move item. use arrows/`j/k` to move item. Enter to confirm, Esc to
+  cancel
