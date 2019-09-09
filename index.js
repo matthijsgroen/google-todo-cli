@@ -35,18 +35,15 @@ const main = async () => {
     );
     return process.exit(0);
   }
+  const service = await getTaskService();
+
   const screen = blessed.screen({
     smartCSR: true,
     fullUnicode: true
   });
   screen.title = "Todo CLI";
-  screen.key(["C-c"], function(ch, key) {
-    return process.exit(0);
-  });
-
-  const service = await getTaskService();
   // Quit on q, or Control-C.
-  screen.key(["q"], function(ch, key) {
+  screen.key(["q", "C-c"], function(ch, key) {
     return process.exit(0);
   });
   listbar(screen, store, {
