@@ -256,6 +256,33 @@ const moveTask = (store, service, taskId) => {
         return;
       }
     },
+    moveRight: () => {
+      const currentMutation = store.getState().taskLists.moveMutation;
+      const orderedList = getCurrentListOrdered(store, {
+        id: currentMutation.taskId,
+        parent: currentMutation.newParent,
+        position: currentMutation.newPosition
+      });
+      const item = orderedList.find(i => i.id === taskId);
+      const itemIndex = orderedList.indexOf(item);
+      const previous = orderedList[itemIndex - 1];
+      if (!previous) return;
+
+      if (item.parent !== ROOT_LEVEL) return;
+      if (previous.parent) {
+        store.dispatch({
+          type: MOVE,
+          newParent: previous.parent,
+          newPosition: previous.position
+        });
+        return;
+      }
+      store.dispatch({
+        type: MOVE,
+        newParent: previous.id,
+        newPosition: undefined
+      });
+    },
     cancel: () => {
       store.dispatch({
         type: CANCEL_MOVE

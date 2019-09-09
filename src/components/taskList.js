@@ -120,7 +120,7 @@ const taskList = (
     style: theme.LIST_STYLING,
     focused: true,
     mouse: true,
-    keys: true,
+    keys: false,
     vi: true,
     scrollable: true,
     alwaysScroll: true,
@@ -154,7 +154,36 @@ const taskList = (
       }
     }
   });
-  list.on("keypress", async char => {
+  list.on("keypress", async (char, key) => {
+    if (key.name === "up" || key.name === "k") {
+      list.up();
+      list.screen.render();
+      return;
+    }
+    if (key.name === "down" || key.name === "j") {
+      list.down();
+      list.screen.render();
+      return;
+    }
+    if (key.name === "enter") {
+      list.enterSelected();
+      return;
+    }
+    if (key.name === "escape" || key.name === "q") {
+      list.cancelSelected();
+      return;
+    }
+    if (key.name === "g" && !key.shift) {
+      list.select(0);
+      list.screen.render();
+      return;
+    }
+    if (key.name === "g" && key.shift) {
+      list.select(list.items.length - 1);
+      list.screen.render();
+      return;
+    }
+
     const selectedTask = props.displayItems[selectedIndex];
     if (selectedTask && selectedTask.id !== "new" && char === "x") {
       toggleTask(selectedTask.id);
@@ -177,6 +206,14 @@ const taskList = (
       } else {
         moveMutation = moveTask(selectedTask.id);
       }
+    }
+    if (
+      selectedTask &&
+      moveMutation &&
+      key.shift === false &&
+      (key.name === "l" || key.name === "right")
+    ) {
+      moveMutation.moveRight();
     }
     if (selectedTask && selectedTask.id !== "new" && char === "D") {
       const result = await confirm("Are you sure?");
