@@ -100,7 +100,7 @@ const taskList = (
     top: 0,
     bottom: 0,
     width: "100%-2",
-    left: -4,
+    left: -1,
     style: theme.LIST_STYLING,
     focused: true,
     mouse: true,

@@ -32,8 +32,8 @@ const BOX_STYLING = {
   padding: {
     top: 1,
     bottom: 1,
-    left: 4,
-    right: 4
+    left: 1,
+    right: 1
   },
   border: {
     type: "line"

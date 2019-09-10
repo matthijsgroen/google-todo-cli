@@ -6,8 +6,8 @@ const createPrompt = (screen, name, value = "") =>
     const prompt = blessed.prompt({
       left: "center",
       top: "center",
-      height: "shrink",
-      width: "100%",
+      height: 10,
+      width: "100%-2",
       ...theme.BOX_STYLING
     });
     screen.append(prompt);
