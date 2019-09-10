@@ -8,7 +8,8 @@ const createPrompt = (screen, name, value = "") =>
       top: "center",
       height: 10,
       width: "100%-2",
-      ...theme.BOX_STYLING
+      ...theme.BOX_STYLING,
+      shadow: true
     });
     screen.append(prompt);
     prompt.input(name, value, (err, data) => {

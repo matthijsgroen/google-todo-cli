@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 const store = require("./src/state/store");
+const { readFileSync } = require("fs");
+const path = require("path");
 
 const blessed = require("blessed");
 const {
@@ -31,15 +33,51 @@ const INSTRUCTION_PATH =
 
 const main = async () => {
   const args = process.argv.slice(2);
-  if (!setupCompleted() && (args[0] !== "setup" || !setup(args[1]))) {
-    console.log("Please setup the use of google-tasks-api.");
-    console.log("");
-    console.log(`1. Go to ${INSTRUCTION_PATH}`);
-    console.log("2. Click ENABLE THE GOOGLE TASKS API");
-    console.log("3. Download the credentials.json file");
-    console.log(
-      "4. call this program with: todo-list setup /path/to/credentials.json"
+  if (["help", "--help"].includes(args[0])) {
+    const packageInfo = JSON.parse(
+      readFileSync(path.join(__dirname, "package.json"))
     );
+
+    [
+      `${packageInfo.name} v.${packageInfo.version}`,
+      "",
+      "Keyboard help",
+      "============",
+      "q / Ctrl-C:   Quit",
+      "",
+      "Bottom bar:",
+      "",
+      "- `1` - previous list",
+      "- `2` - next list",
+      "- `3` - refresh list",
+      "- `4` - clear all completed tasks",
+      "- `n` - create new tasklist",
+      "",
+      "Navigation:",
+      "",
+      "- `j/k`/arrows - move selection",
+      "- `g/G` - top/bottom of list",
+      "",
+      "Tasks:",
+      "",
+      "- `x` - Complete/open task",
+      "- Enter - edit item",
+      "- `a` - add new item underneath selected item",
+      "- `s` - add new item as subtask of selected item",
+      "- `D` - Delete task",
+      "- `m` - Move item. use arrows/`j/k/l` to move item. Enter to confirm, Esc to cancel"
+    ].forEach(l => console.log(l));
+    return process.exit(0);
+  }
+  if (!setupCompleted() && (args[0] !== "setup" || !setup(args[1]))) {
+    [
+      "Please setup the use of google-tasks-api.",
+      "",
+      `1. Go to ${INSTRUCTION_PATH}`,
+      "2. Click ENABLE THE GOOGLE TASKS API",
+      "3. Download the credentials.json file",
+      "4. call this program with: todo-list setup /path/to/credentials.json"
+    ].forEach(l => console.log(l));
     return process.exit(0);
   }
   const service = await getTaskService();

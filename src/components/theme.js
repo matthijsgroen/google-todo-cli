@@ -41,7 +41,7 @@ const BOX_STYLING = {
   style: {
     ...TEXT_STYLING,
     border: {
-      fg: "#666666",
+      fg: "#999999",
       bg: "#464D55"
     },
     label: {
