@@ -52,11 +52,12 @@ const taskList = (
   const confirm = name =>
     new Promise(resolve => {
       const prompt = blessed.question({
-        left: "center",
+        left: 1,
         top: "center",
         height: "shrink",
-        width: "100%",
-        ...theme.BOX_STYLING
+        width: "100%-2",
+        ...theme.BOX_STYLING,
+        shadow: true
       });
       screen.append(prompt);
       prompt.ask(name, (err, data) => {
