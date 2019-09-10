@@ -1,4 +1,4 @@
-const { createStore, combineReducers } = require("redux");
+const { createStore, combineReducers } = require("../lib/redux-lite");
 const taskLists = require("./taskLists").reducer;
 const tasks = require("./tasks").reducer;
 

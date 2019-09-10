@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "blessed": "^0.1.81",
-    "googleapis": "39",
-    "redux": "^4.0.4"
+    "googleapis": "39"
   }
 }
