@@ -3,6 +3,8 @@
 Command line app to manage your TODO lists. Ideal when working in a TMUX setup
 and you want a todo list next to your editor and tests 😎
 
+![Demo animation](./google-todo-cli.gif)
+
 ## Installation
 
 `yarn global add google-todo-cli`
@@ -18,6 +20,10 @@ either.
 ## Usage
 
 `todo-list`
+
+## Help
+
+`todo-list help`
 
 ## Keys:
 
