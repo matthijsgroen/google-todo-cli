@@ -12,9 +12,8 @@ const createStore = (reducer, initialState) => {
     getState: () => state,
     dispatch: action => {
       const newState = reducer(state, action);
-      const changed = newState !== state;
-      state = newState;
-      if (changed) {
+      if (state !== newState) {
+        state = newState;
         subscribers.forEach(f => f());
       }
     }
