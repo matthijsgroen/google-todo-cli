@@ -22,6 +22,7 @@ const {
   toggle: toggleTask,
   add: addTask,
   edit: editTask,
+  clear: clearCompletedTasks,
   remove: removeTask
 } = require("./src/state/tasks");
 
@@ -101,7 +102,8 @@ const main = async () => {
   listbar(screen, store, {
     refreshList: (listId, clear = false) =>
       fetchTasks(store, service, listId, clear, 0),
-    createList: name => createTaskList(store, service, name)
+    createList: name => createTaskList(store, service, name),
+    clearCompleted: () => clearCompletedTasks(store)
   });
   taskList(screen, store, {
     fetchTasks: listId => fetchTasks(store, service, listId),

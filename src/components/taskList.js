@@ -52,6 +52,7 @@ const taskList = (
   const confirm = name =>
     new Promise(resolve => {
       const prompt = blessed.question({
+        parent: screen,
         left: 1,
         top: "center",
         height: "shrink",
@@ -61,6 +62,7 @@ const taskList = (
       });
       screen.append(prompt);
       prompt.ask(name, (err, data) => {
+        screen.render();
         resolve(data);
       });
     });

@@ -2,6 +2,7 @@ const UPDATE_TASKS = "UPDATE-TASKS";
 const UPDATE_TASK = "UPDATE-TASK";
 const ADD_TASK = "ADD-TASK";
 const DELETE_TASK = "DELETE-TASK";
+const CLEAR_COMPLETED = "CLEAR-COMPLETED";
 
 const TASK_STATUS = {
   COMPLETE: "completed",
@@ -17,7 +18,7 @@ const reducer = (state = INITIAL_STATE, action) => {
       ...state,
       [action.list]: {
         time: action.time,
-        items: action.items
+        items: action.items || []
       }
     };
   }
@@ -28,7 +29,7 @@ const reducer = (state = INITIAL_STATE, action) => {
       ...state,
       [action.list]: {
         ...list,
-        items: list.items.map(item =>
+        items: (list.items || []).map(item =>
           action.id === item.id
             ? {
                 ...item,
@@ -57,7 +58,20 @@ const reducer = (state = INITIAL_STATE, action) => {
       ...state,
       [action.list]: {
         ...list,
-        items: list.items.filter(item => item.id !== action.id)
+        items: (list.items || []).filter(item => item.id !== action.id)
+      }
+    };
+  }
+  if (action.type === CLEAR_COMPLETED) {
+    const list = state[action.list];
+    if (!list) return state;
+    return {
+      ...state,
+      [action.list]: {
+        ...list,
+        items: (list.items || []).filter(
+          item => item.status !== TASK_STATUS.COMPLETE
+        )
       }
     };
   }
@@ -217,11 +231,18 @@ const remove = (store, service, taskId) => {
   });
 };
 
+const clear = store => {
+  const state = store.getState();
+  const currentList = state.taskLists.lists[state.taskLists.activeList];
+  store.dispatch({ type: CLEAR_COMPLETED, list: currentList.id });
+};
+
 module.exports = {
   reducer,
   fetch,
   toggle,
   add,
   edit,
-  remove
+  remove,
+  clear
 };
